@@ -1,6 +1,6 @@
 # FinTech Toolkit
 
-A Python fintech toolkit with three services behind one FastAPI app:
+A Python fintech toolkit with three services behind one FastAPI app (`fintech/api.py`):
 
 - **Fraud detection** — ML scoring of card transactions (`fraud_detection/`)
 - **Loan calculator** — payments, total interest, amortization schedules (`fintech/loans.py`)
@@ -44,7 +44,7 @@ the trained pipeline to `artifacts/model.joblib`.
 
 ```bash
 export FRAUD_MODEL_PATH=artifacts/model.joblib
-uvicorn fraud_detection.api:app --reload
+uvicorn fintech.api:app --reload
 ```
 
 - `GET /health` — service and model status

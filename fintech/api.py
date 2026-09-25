@@ -1,7 +1,7 @@
 """FastAPI service for fintech workloads: fraud scoring, loan quotes, and credit assessment.
 
 Run with:
-    uvicorn fraud_detection.api:app --reload
+    uvicorn fintech.api:app --reload
 """
 from __future__ import annotations
 

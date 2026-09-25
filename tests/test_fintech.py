@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 from fintech.credit import Applicant, assess
 from fintech.loans import amortization_schedule, monthly_payment
-from fraud_detection.api import app
+from fintech.api import app
 
 
 def test_monthly_payment_known_value():
