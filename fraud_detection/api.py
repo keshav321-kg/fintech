@@ -1,4 +1,4 @@
-"""FastAPI service that scores transactions for fraud risk.
+"""FastAPI service for fintech workloads: fraud scoring, loan quotes, and credit assessment.
 
 Run with:
     uvicorn fraud_detection.api:app --reload
@@ -12,12 +12,14 @@ import joblib
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from fintech.credit import Applicant, assess
+from fintech.loans import amortization_schedule, monthly_payment, total_interest
 from fraud_detection.data import FEATURE_COLUMNS
 
 MODEL_PATH = Path(os.environ.get("FRAUD_MODEL_PATH", "artifacts/model.joblib"))
 DEFAULT_THRESHOLD = float(os.environ.get("FRAUD_THRESHOLD", "0.5"))
 
-app = FastAPI(title="Fraud Detection API", version="1.0.0")
+app = FastAPI(title="FinTech API", version="2.0.0")
 _model = None
 
 
@@ -61,3 +63,37 @@ def score(txn: Transaction, threshold: float = DEFAULT_THRESHOLD) -> ScoreRespon
     row = [[getattr(txn, col) for col in FEATURE_COLUMNS]]
     proba = float(model.predict_proba(row)[0, 1])
     return ScoreResponse(fraud_probability=proba, is_fraud=proba >= threshold, threshold=threshold)
+
+
+class LoanRequest(BaseModel):
+    principal: float = Field(..., gt=0)
+    annual_rate: float = Field(..., ge=0, lt=1, description="Annual interest rate, e.g. 0.065")
+    term_months: int = Field(..., gt=0, le=600)
+    include_schedule: bool = False
+
+
+class CreditApplication(BaseModel):
+    annual_income: float = Field(..., gt=0)
+    monthly_debt: float = Field(..., ge=0)
+    credit_score: int = Field(..., ge=300, le=850)
+    loan_amount: float = Field(..., gt=0)
+    annual_rate: float = Field(..., ge=0, lt=1)
+    term_months: int = Field(..., gt=0, le=600)
+    years_employed: float = Field(0.0, ge=0)
+    missed_payments_12m: int = Field(0, ge=0)
+
+
+@app.post("/loan/quote")
+def loan_quote(req: LoanRequest) -> dict:
+    result = {
+        "monthly_payment": round(monthly_payment(req.principal, req.annual_rate, req.term_months), 2),
+        "total_interest": round(total_interest(req.principal, req.annual_rate, req.term_months), 2),
+    }
+    if req.include_schedule:
+        result["schedule"] = amortization_schedule(req.principal, req.annual_rate, req.term_months)
+    return result
+
+
+@app.post("/credit/assess")
+def credit_assess(application: CreditApplication) -> dict:
+    return assess(Applicant(**application.model_dump()))

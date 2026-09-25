@@ -1,4 +1,12 @@
-# Fraud Detection
+# FinTech Toolkit
+
+A Python fintech toolkit with three services behind one FastAPI app:
+
+- **Fraud detection** — ML scoring of card transactions (`fraud_detection/`)
+- **Loan calculator** — payments, total interest, amortization schedules (`fintech/loans.py`)
+- **Credit risk assessment** — debt-to-income, risk score, A–E grade, approve/decline (`fintech/credit.py`)
+
+## Fraud detection
 
 A financial-transaction fraud detection system: a synthetic data generator, a
 scikit-learn training pipeline (`RandomForestClassifier` on a standardized
@@ -55,6 +63,28 @@ Response:
 ```json
 {"fraud_probability": 0.93, "is_fraud": true, "threshold": 0.5}
 ```
+
+## Loan quotes
+
+```bash
+curl -X POST http://localhost:8000/loan/quote -H "Content-Type: application/json" \
+  -d '{"principal": 200000, "annual_rate": 0.06, "term_months": 360, "include_schedule": false}'
+# {"monthly_payment": 1199.1, "total_interest": 231676.38}
+```
+
+## Credit assessment
+
+```bash
+curl -X POST http://localhost:8000/credit/assess -H "Content-Type: application/json" \
+  -d '{"annual_income": 120000, "monthly_debt": 500, "credit_score": 790,
+       "loan_amount": 20000, "annual_rate": 0.07, "term_months": 60, "years_employed": 5}'
+# {"monthly_payment": 396.02, "debt_to_income": 0.0896, "risk_score": 8.6, "grade": "A", "approved": true}
+```
+
+The risk score (0–100, higher is riskier) weights credit score, debt-to-income
+(capped against a 43% DTI ceiling), recent missed payments, and employment
+length. It is an illustrative rule-based model, not a regulatory-grade
+underwriting system.
 
 ## Tests
 
