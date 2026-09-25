@@ -26,7 +26,7 @@ def test_api_scores_transaction(tmp_path, monkeypatch):
     joblib.dump(pipeline, model_path)
     monkeypatch.setenv("FRAUD_MODEL_PATH", str(model_path))
 
-    from fraud_detection import api as api_module
+    from fintech import api as api_module
 
     api_module.MODEL_PATH = model_path
     api_module._model = None
