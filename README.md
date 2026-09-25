@@ -86,6 +86,32 @@ The risk score (0–100, higher is riskier) weights credit score, debt-to-income
 length. It is an illustrative rule-based model, not a regulatory-grade
 underwriting system.
 
+## Gemini MCP server
+
+`gemini_mcp/server.py` is a small MCP server, built on the standard library only, that exposes Google
+Gemini to Claude as an `ask_gemini` tool (`prompt`, optional `system`,
+`model`, `temperature`). Get an API key from Google AI Studio. You can set
+`GEMINI_MODEL` to change the default model (`gemini-2.5-flash`).
+
+**Claude Code (stdio):**
+
+```bash
+claude mcp add gemini -e GEMINI_API_KEY=your-key -- python -m gemini_mcp.server
+```
+
+Run the command from the repo root, or set `cwd`/`PYTHONPATH` to point at it.
+
+**claude.ai custom connector (HTTP):** host it somewhere public over HTTPS, then
+add `https://<host>/mcp` under Settings → Connectors → Add custom connector.
+
+```bash
+GEMINI_API_KEY=your-key MCP_AUTH_TOKEN=optional-secret python -m gemini_mcp.server --http 8080
+```
+
+HTTP mode answers JSON-RPC over POST with JSON responses; it has no SSE
+stream. If `MCP_AUTH_TOKEN` is set, requests must send `Authorization: Bearer <token>`.
+Never commit your API key.
+
 ## Tests
 
 ```bash
